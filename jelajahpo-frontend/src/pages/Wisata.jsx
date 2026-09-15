@@ -1,16 +1,62 @@
-App.post('/wisata', (req, res) => {
-    const { nama_wisata, deskripsi, harga_tiket, id_kategori } = req.body;
+import { useEffect, useState } from "react";
 
-    if (!nama_wisata || !harga_tiket) {
-        return res.status(400).json({ message: 'Nama Wisata dan harga_tiket wajib diisi' });
+export default function Wisata() {
+    const [wisata, setWisata] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    const getWisata = async () => {
+        try {
+         const res = await fetch("http://localhost:3001/wisata");
+         const data = await res.json();
+         setWisata(data);
+        } catch (err) {
+          console.error("Gagal fetch data:", err);
+        } finally {
+          setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        getWisata();
+    }, []);
+
+    if (loading) {
+        return <div className="container mt-4">Sedang memuat data...</div>
     }
 
-    const sql = 'INSERT INTO wisata (nama_wisata, deskripsi, harga_tiket, id_kategori, tgl_input) VALUES (?, ?, ?, ?, NOW())';
-    db.query(sql, [nama_wisata, deskripsi, harga_tiket, id_kategori], (err, result) => {
-    if (err) return res.status(500).json({ error: err.sqlMessange });
-    res.json({
-        message: 'Wisata berhasil ditambahkan!',
-        id_wisata: result.insertId
-    });
-    });
-});
+    return (
+        <div className="container mt-4">
+            <div className="d-flex justify-content-between align-items-center mb-3">
+                <h2>Daftar Wisata JelajahPo</h2>
+            </div>
+            <table className="table table-bordered table-striped">
+                <thead className="table-primary">
+                    <tr>
+                        <th>ID</th>
+                        <th>Nama Wisata</th>
+                        <th>Deskripsi</th>
+                        <th>Harga Tiket</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {wisata.length > 0 ? (
+                        wisata.map((item) => (
+                            <tr key={item.id_wisata}>
+                                <td>{item.id_wisata}</td>
+                                <td>{item.nama_wisata}</td>
+                                <td>{item.deskripsi}</td>
+                                <td>RP {item.harga_tiket}</td>
+                            </tr>
+                        ))
+                    ) : (
+                      <tr>
+                        <td colSpan="4" className="text-center">
+                            Belum ada wisata
+                        </td>
+                      </tr>
+                    )}
+                </tbody>
+            </table>
+        </div>
+    );
+}
