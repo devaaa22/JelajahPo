@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 export default function Wisata() {
     const [wisata, setWisata] = useState([]);
@@ -20,6 +21,25 @@ export default function Wisata() {
         getWisata();
     }, []);
 
+
+    const handleDelete = async (id) => {
+        if (window.confirm("Yakin ingin menghapus wisata ini?")) {
+            try {
+                const res = await fetch(`http://localhost:3001/wisata/${id}`,{
+                    method: "DELETE",
+                });
+                if (res.ok) {
+                alert("Wisata berhasil dihapus");
+                getWisata(); //ambil ulang data terbaru
+            } else {
+                alert("Gagal menghapus wisata");
+            }
+        } catch(err) {
+            console.error("Error saat delete:", err)
+            alert("Terjadi kesalahan saat menghapus data")
+        }
+    }
+};
     if (loading) {
         return <div className="container mt-4">Sedang memuat data...</div>
     }
@@ -27,8 +47,12 @@ export default function Wisata() {
     return (
         <div className="container mt-4">
             <div className="d-flex justify-content-between align-items-center mb-3">
-                <h2>Daftar Wisata JelajahPo</h2>
+                <h2>Daftar Wisata JelajahPo </h2>
+                <Link to="/wisata/tambah" className="btn btn-primary">
+                    + Tambah Wisata
+                </Link>
             </div>
+
             <table className="table table-bordered table-striped">
                 <thead className="table-primary">
                     <tr>
@@ -46,6 +70,22 @@ export default function Wisata() {
                                 <td>{item.nama_wisata}</td>
                                 <td>{item.deskripsi}</td>
                                 <td>RP {item.harga_tiket}</td>
+
+                                <td>
+                            <button
+                                className="btn btn-warning btn-sm me-2"
+                                onClick={() => handleEdit(item.id_wisata)}
+                            >
+                                Edit
+                            </button>
+                            
+                            <button
+                                className="btn btn-danger btn-sm"
+                                onClick={() => handleDelete(item.id_wisata)}
+                            >
+                                Delete
+                            </button>
+                        </td>
                             </tr>
                         ))
                     ) : (

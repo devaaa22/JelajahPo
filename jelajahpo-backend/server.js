@@ -2,6 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+
 app.use(cors());
 app.use(express.json());
 const mysql = require('mysql2');
@@ -36,6 +39,16 @@ app.get('/wisata', (req, res) => {
     });
 });
 
+//========================= GET WISATA ==================//
+app.get('/wisata/:id_wisata', (req, res) => {
+    const { id_wisata } = res.params;
+    const sql = 'SELECT * FROM wisata WHERE id_wisata = ?';
+    db.query(sql, [id_wisata], (err, result) => {
+        if (err) return res.status(500).json({ error: err });
+        res.json(results);
+    });
+});
+
 //--------------------------- GET KATEGORI WISATA --------------------------------//
 app.get('/kategori', (req, res) => {
     const sql = 'SELECT * FROM kategori'
@@ -65,6 +78,78 @@ app.post('/wisata', (req,res) => {
         });
     });
 });
+ 
+//======================= PUT WISATA =======================//
+app.put('/wisata/:id_wisata', (req, res) => {
+    const { id_wisata } = req.params;
+    const { nama_wisata, deskripsi, harga_tiket, id_kategori } = req.body;
+
+    if (!nama_wisata || !harga_tiket) {
+        return res.status(400).json({ message: 'Nama Wisata dan harga_tiket wajib diisi' })
+    }
+
+    const sql = `UPDATE wisata SET nama_wisata=?, deskripsi=?, harga_tiket=?, id_kategori=? WHERE id_wisata=?`;
+    db.query(sql, [nama_wisata, deskripsi, harga_tiket, id_kategori, id_wisata], (err, result) => {
+        if (err) return res.status(500).json({ error: err.sqlMessage });
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                message: 'Wisata tidak ditemukan'
+            });
+        }
+
+        res.json({ message: 'Wisata berhasil diupdate!' })
+    })
+})
+
+//================= DELETE WISATA ==================//
+app.delete('/wisata/:id_wisata', (req, res)=> {
+    const { id_wisata } = req.params;
+    const sql = 'DELETE FROM wisata WHERE id_wisata = ?';
+    db.query(sql, [id_wisata], (err, result) => {
+        if (err) return res.status(500).json({ error: err.sqlMessage });
+        if(result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Wisata tidak ditemukan'});
+        }
+        res.json({ message: 'Wisata berhasil dihapus!' });
+    })
+})
+
+//============== POST PENGGUNA ============//
+app.post('/pengguna', async (req, res) => {
+    const { nama, email, password, no_hp } = req.body;
+
+    if (!nama || !email || !password) {
+        return res.status(400).json({message: 'Nama. email, dan password wajib diisi' });
+    }
+
+    try {
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        const sql= 'INSERT INTO pengguna (nama, email, password, no_hp) VALUES (?, ?, ?, ?)';
+        db.query(sql, [nama, email, hashedPassword, no_hp], (err, result) => {
+            if (err) {
+                if (err.code === 'ER_DUP_ENTRY') {
+                    return res.status(400).json({
+                        message: 'email sudah terdaftar, gunakan email lain'
+                    });
+                }
+
+                return res.status(500).json({
+                    error: err.sqlMessage
+                });
+            }
+
+            if (err) return res.status(500).json({ error: err.sqlMessage });
+            res.json({
+                message: 'Akun berhasil dibuat!',
+                id_pengguna: result.insertId
+            });
+        });
+    } catch (err) {
+        res.status(500).json({ error: 'Gagal mengenkripsi password'})
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`Server JelajahPo jalan di http://localhost:${PORT}`);
 });
