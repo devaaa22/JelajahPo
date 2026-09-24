@@ -4,47 +4,93 @@ import { useParams, useNavigate } from "react-router-dom";
 export default function EditWisata() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const [formData, setFromData] = useState({
-        nama_wisata:"",
-        deskripsi:"",
-        harga_tiket:"",
-        id_kategori:"",
+    const [formData, setFormData] = useState({
+        nama_wisata: "",
+        deskripsi: "",
+        harga_tiket: "",
+        id_kategori: "",
     });
+    
+    const [kategori, setKategori] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch(`http://localhost:3001/wisata/${id}`)
-        .then((res) => res.json())
-        .then((data) => {
-            setFromData(data[0]); // ambil data pertama hasil query
-            setLoading( false );
-        })
-        .catch((err) => console.error(err));
+        const getData = async () => {
+            try {
+                // ambil data wisata
+                const resWisata = await fetch(`http://localhost:3001/wisata/${id}`);
+                const dataWisata = await resWisata.json();
+                console.log("Data wisata:", dataWisata[0]);
+                setFormData({
+                    nama_wisata: dataWisata[0].nama_wisata,
+                    deskripsi: dataWisata[0].deskripsi,
+                    harga_tiket: dataWisata[0].harga_tiket,
+                    id_kategori: dataWisata[0].id_kategori,
+                });
+
+                //ambil data kategori
+                const resKategori = await fetch("http://localhost:3001/kategori");
+                const dataKategori = await resKategori.json();
+                setKategori(dataKategori);
+
+            } catch (err) {
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        getData();
     }, [id]);
 
     const handleChange = (e) => {
-        setFromData({ ...formData, [e.target.name]: e.target.value });
-    };
+        setFormData({ 
+            ...formData,
+            [e.target.name]: e.target.value 
+        });
+    }
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        await fetch(`http://localhost:3001/wisata/${id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formData),
-        });
-        alert("Wisata berhasil diperbarui!");
-        navigate("/wisata");
+
+        const yakin = window.confirm("Yakin mau menyimpan perubahan ini?");
+
+        if (!yakin) {
+            return;
+        }
+
+        try{
+            const res = await fetch(`http://localhost:3001/wisata/${id}`, {
+                method: "PUT",
+                headers: { 
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+                body: JSON.stringify(formData),
+            });
+
+            if (res.ok) {
+                alert("Wisata berhasil diperbarui!");
+                navigate("/wisata");
+            } else {
+                alert("Gagal memperbarui wisata");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Terjadi kesalahan.");
+        }
     };
 
-    if (loading) {
-        return <div className="container mt-4">Loading...</div>;
+    if(loading) {
+        return <div className="container mt-4">Loading...</div>
     }
 
     return (
-        <div className="container mt-4>">
+        <div className="container mt-4">
             <h2>Edit Wisata</h2>
             <form onSubmit={handleSubmit} className="mt-3">
                 <div className="mb-3">
+                    <label className="form-label">Nama Wisata</label>
                     <input
                         type="text"
                         name="nama_wisata"
@@ -53,10 +99,52 @@ export default function EditWisata() {
                         className="form-control"
                     />
                 </div>
-                <button type="submit className=btn btn-success me-2">
+
+                <div className="mb-3">
+                    <label className="form-label">Deskripsi</label>
+                    <textarea
+                        name="deskripsi"
+                        value={formData.deskripsi}
+                        onChange={handleChange}
+                        className="form-control"
+                    ></textarea>
+                </div>
+
+                <div className="mb-3">
+                    <label className="form-label">Harga Tiket</label>
+                    <input
+                        type="number"
+                        name="harga_tiket"
+                        value={formData.harga_tiket}
+                        onChange={handleChange}
+                        className="form-control"
+                    />
+                </div>
+
+                <div className="mb-3">
+                    <label className="form-label">Kategori</label>
+                    <select
+                        name="id_kategori"
+                        value={formData.id_kategori}
+                        onChange={handleChange}
+                        className="form-select"
+                        required
+                    >
+                        <option value="">--- Pilih Kategori ---</option>
+                        {kategori.map((item) => (
+                            <option
+                                key={item.id_kategori}
+                                value={item.id_kategori}
+                            >
+                                {item.kategori}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <button type="submit" className="btn btn-success me-2">
                     Simpan Perubahan
                 </button>
             </form>
         </div>
-    )
+    );
 }

@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Wisata() {
     const [wisata, setWisata] = useState([]);
     const [loading, setLoading] = useState(true);
+
+    const navigate = useNavigate();
 
     const getWisata = async () => {
         try {
@@ -20,6 +22,11 @@ export default function Wisata() {
     useEffect(() => {
         getWisata();
     }, []);
+    
+    const handleEdit = (id) => {
+        navigate(`/wisata/edit/${id}`);
+    };
+    
 
 
     const handleDelete = async (id) => {
@@ -60,6 +67,8 @@ export default function Wisata() {
                         <th>Nama Wisata</th>
                         <th>Deskripsi</th>
                         <th>Harga Tiket</th>
+                        <th>Edit</th>
+                        <th>Delete</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -72,20 +81,21 @@ export default function Wisata() {
                                 <td>RP {item.harga_tiket}</td>
 
                                 <td>
-                            <button
-                                className="btn btn-warning btn-sm me-2"
-                                onClick={() => handleEdit(item.id_wisata)}
-                            >
-                                Edit
-                            </button>
-                            
-                            <button
-                                className="btn btn-danger btn-sm"
-                                onClick={() => handleDelete(item.id_wisata)}
-                            >
-                                Delete
-                            </button>
-                        </td>
+                                <button
+                                    className="btn btn-warning btn-sm me-2"
+                                    onClick={() => handleEdit(item.id_wisata)}
+                                >
+                                    Edit
+                                </button>
+                                </td>
+                                <td>
+                                <button
+                                    className="btn btn-danger btn-sm"
+                                    onClick={() => handleDelete(item.id_wisata)}
+                                >
+                                    Delete
+                                </button>
+                            </td>
                             </tr>
                         ))
                     ) : (
