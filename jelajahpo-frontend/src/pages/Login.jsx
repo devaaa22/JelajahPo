@@ -12,7 +12,7 @@ export default function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try { 
-            const res = await fetch("hhtp://localhost:3001/login", {
+            const res = await fetch("http://localhost:3001/login", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData),
@@ -20,7 +20,7 @@ export default function Login() {
             const data = await res.json();
 
             if (res.ok && data.auth) {
-                ocalStorage.setItem("token", data.token);
+                localStorage.setItem("token", data.token);
                 localStorage.setItem("idPengguna", data.id_pengguna);
                 localStorage.setItem("nama", data.nama);
                 alert("Login berhasil, selamat datang " + data.nama + "!");
@@ -50,12 +50,12 @@ export default function Login() {
                         />
                         <label htmlFor="floatingInput">Email address</label>
                     </div>
-                    <div className="form-floating mbb-3">
+                    <div className="form-floating mb-3">
                     <input
                             type="password"
                             name="password"
                             className="form-control"
-                            id="floatingpassword"
+                            id="floatingPassword"
                             placeholder="password"
                             onChange={handleChange}
                         />

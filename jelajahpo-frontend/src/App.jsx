@@ -9,12 +9,12 @@ import Tentang from "./pages/Tentang";
 import AddWisata from "./pages/AddWisata";
 import EditWisata from "./pages/EditWisata";
 
-function  ProtectedRoute({ childer }) {
+function  ProtectedRoute({ children }) {
   const token = localStorage.getItem("token");
   if (!token) {
     return <Navigate to="/login" replace />;
   }
-  return childer;
+  return children;
 }
 
 export default function App() {
