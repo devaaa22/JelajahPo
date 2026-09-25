@@ -68,6 +68,7 @@ export default function Wisata() {
                     <tr>
                         <th>ID</th>
                         <th>Nama Wisata</th>
+                        <th>Foto</th>
                         <th>Deskripsi</th>
                         <th>Harga Tiket</th>
                         <th>Edit</th>
@@ -80,8 +81,23 @@ export default function Wisata() {
                             <tr key={item.id_wisata}>
                                 <td>{item.id_wisata}</td>
                                 <td>{item.nama_wisata}</td>
+
+                                <td>
+                                    {item.nama_file ? (
+                                        <img
+                                        src={`http://localhost:3001/uploads/${item.nama_file}`}
+                                        alt={item.nama_wisata}
+                                            width="200"
+                                            height="150"
+                                            className="rounded"
+                                            style={{ objectFit: "cover" }}
+                                        />
+                                    ) : (
+                                    <span className="text-muted">Tidak ada foto</span>
+                                    )};
+                                </td>
                                 <td>{item.deskripsi}</td>
-                                <td>RP {item.harga_tiket}</td>
+                                <td>RP{Number(item.harga_tiket).toLocaleString("id-ID")}</td>
 
                                 <td>
                                 <button
@@ -103,7 +119,7 @@ export default function Wisata() {
                         ))
                     ) : (
                       <tr>
-                        <td colSpan="4" className="text-center">
+                        <td colSpan="7" className="text-center">
                             Belum ada wisata
                         </td>
                       </tr>
